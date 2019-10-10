@@ -257,8 +257,9 @@ class Home extends Component {
     const self = this;
 
     console.log('url: %s', url)
+    const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(url)
+    await fetch(proxyurl+url)
       .then(response => {
         return response.json();
       })
@@ -277,8 +278,9 @@ class Home extends Component {
     const self = this;
 
     console.log('url: %s', url)
+    const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(url)
+    await fetch(proxyurl+url)
       .then(response => {
         return response.json();
       })
@@ -300,6 +302,8 @@ class Home extends Component {
     const dataPostingTime = (new Date()).toString()
 
     const url = `${BASE_URL}/answer`;
+    const proxyurl = "https://cors-anywhere.herokuapp.com/";
+
     const method = "POST";
     const headers = {
       'Accept': 'application/json',
@@ -321,7 +325,7 @@ class Home extends Component {
 
     console.log(body)
 
-    return fetch(url, {method, headers, body})
+    return fetch(proxyurl+url, {method, headers, body})
   }
 
   /**
