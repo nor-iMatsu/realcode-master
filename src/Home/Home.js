@@ -471,7 +471,7 @@ class Home extends Component {
             </div>
             <div className="cp_group">
               <textarea required="required" rows="5" onChange={ e => { this.setState({ reasonForValidity: e.target.value })}}></textarea>
-              <label className="cp_label" htmlFor="textarea">そう思わないと答えた場合、理由をお書きください</label>
+              <label className="cp_label" htmlFor="textarea">そう思わないと答えた場合、理由をお書きください。そう思うと答えた場合でも、演習問題として不適切な点があればお書きください。 </label>
               <i className="bar"></i>
             </div>
 
