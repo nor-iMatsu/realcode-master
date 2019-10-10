@@ -1,0 +1,11 @@
+version: '3'
+services:
+  client:
+    container_name: realcode-client
+    build: .
+    volumes:
+      - ./public:/usr/src/app/public
+      - ./src:/usr/src/app/src
+    ports:
+      - '3000:3000'
+      # - '80:3000'
