@@ -9,7 +9,7 @@ const BASE_URL = 'https://api.realcode.link';
 // const BASE_URL = 'http://localhost:8080';
 const NUMBER_OF_EXERCISES_TO_ANSWER = 3;
 
-const collectionNames = ['exercises_py_all', 'exercises_js_all']
+const collectionNames = ['exercises_py_deploy', 'exercises_js_deploy']
 
 class Home extends Component {
   static propTypes = {
