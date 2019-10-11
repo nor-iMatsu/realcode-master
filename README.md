@@ -2,6 +2,11 @@
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+## ローカル/リモート切り替え
+* `docker-compose.yml` の `ports` のコメントアウト行を入れ替える
+* `Home.js` の　`BASE_URL` のコメントアウト行を入れ替える
+* リモートにする際、3箇所ある `fetch(url` を `fetch(proxyurl+url` に変える。ローカルにするなら逆
+
 ## Available Scripts
 
 In the project directory, you can run:

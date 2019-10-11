@@ -5,8 +5,8 @@ import './Home.css';
 
 require("colors");
 
-const BASE_URL = 'https://api.realcode.link';
-// const BASE_URL = 'http://localhost:8080';
+const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
+// const BASE_URL = 'http://localhost:8080'; // Local server
 const NUMBER_OF_EXERCISES_TO_ANSWER = 3;
 
 const collectionNames = ['exercises_py_deploy', 'exercises_js_deploy']
