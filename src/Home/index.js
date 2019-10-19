@@ -1,4 +1,4 @@
 // import React from 'react';
-import Login from './Home';
+import Home from './Home';
 
-export default Login;
+export default Home;

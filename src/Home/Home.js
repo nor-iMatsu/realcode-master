@@ -5,11 +5,9 @@ import './Home.css';
 
 require("colors");
 
-const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
-// const BASE_URL = 'http://localhost:8080'; // Local server
-const NUMBER_OF_EXERCISES_TO_ANSWER = 3;
-
-const collectionNames = ['exercises_py_deploy', 'exercises_js_deploy']
+// const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
+const BASE_URL = 'http://localhost:8080'; // Local server
+const NUMBER_OF_EXERCISES_TO_ANSWER = 10;
 
 class Home extends Component {
   static propTypes = {
@@ -29,28 +27,15 @@ class Home extends Component {
       exerciseIndexListCurrentIndex: 0,
       exerciseIndexList: [],
       currentExercise: null,
-      collectionCurrentIndex: 0, // Collection何個目か
       dataFetchingTime: "",
-      selectedName: "", // Q0
+      participantId: "", // Q0
       selectedValidity: "",  // Q1
       reasonForValidity: "", // Q1 Reason
       selectedDifficulty: "", // Q2
       libraryName: "", // Q3
+      ideName: "", // Q3
       selectedTypes: [], // Q4
       descriptionForType: "", // Q4 Description
-      names: [
-        { value: "", display: "(選択してください)" },
-        { value: "P1", display: "P1" },
-        { value: "P2", display: "P2" },
-        { value: "P3", display: "P3" },
-        { value: "P4", display: "P4" },
-        { value: "P5", display: "P5" },
-        { value: "P6", display: "P6" },
-        { value: "P7", display: "P7" },
-        { value: "P8", display: "P8" },
-        { value: "P9", display: "P9" },
-        { value: "P10", display: "P10" }
-      ],
       validity: [
         { value: "", display: "(選択してください)" },
         { value: "そう思う", display: "そう思う" },
@@ -100,37 +85,49 @@ class Home extends Component {
       isLoading: true
     });
 
+    const search = this.props.location.search
+    const params = new URLSearchParams(search);
+    this.state.participantId = params.get('id');
+    console.log(this.state.participantId);
+
     try {
       // 問題数をロード
-      const collectionName = collectionNames[this.state.collectionCurrentIndex];
+      const participantId = this.state.participantId;
 
-      await this.fetchNumberOfExercise(collectionName);
+      await this.fetchNumberOfExercise(participantId);
 
       // 回答する問題番号を決定
       const numberOfExercise = this.state.numberOfExercise;
       let exerciseIndexList = [];
       for (let i = 0; i < NUMBER_OF_EXERCISES_TO_ANSWER; i++) {
-        // TODO: 重複を除去する
-        const quizIndex = Math.floor(Math.random() * (numberOfExercise));
+        const quizIndex = i;
+        // const quizIndex = Math.floor(Math.random() * (numberOfExercise));
         exerciseIndexList.push(quizIndex);
       }
-
 
       this.setState({
         exerciseIndexList: exerciseIndexList
       })
 
-      // 最初の問題をロード
-      const firstIndex = exerciseIndexList[0];
-      await this.fetchExercise(collectionName, firstIndex);
 
-      // 終わり
-      this.setState({
-        isLoading: false
-      });
+      // 回答が終わってるかの判定
+      if (this.state.exerciseIndexListCurrentIndex >= NUMBER_OF_EXERCISES_TO_ANSWER) {
+        this.setState({
+          hasFinished: true
+        });
+      } else {
+        // 最初の問題をロード
+        // const firstIndex = exerciseIndexList[0];
+        const firstIndex = exerciseIndexList[this.state.exerciseIndexListCurrentIndex];
+        await this.fetchExercise(participantId, firstIndex);
+        // 終わり
+        this.setState({
+          isLoading: false
+        });
 
-      console.log("First state: %d/%d", 1,  NUMBER_OF_EXERCISES_TO_ANSWER);
-      console.log("Quiz index: %d", firstIndex);
+        console.log("First state: %d/%d", this.state.exerciseIndexListCurrentIndex + 1, NUMBER_OF_EXERCISES_TO_ANSWER);
+        console.log("Quiz index: %d", firstIndex);
+      }
 
     } catch (err) {
       console.error(err);
@@ -144,20 +141,20 @@ class Home extends Component {
   async goToNext() {
     const exerciseIndexList = this.state.exerciseIndexList;
     const currentQuizIndex = exerciseIndexList[this.state.exerciseIndexListCurrentIndex];
+    const exerciseIndexListCurrentIndex = this.state.exerciseIndexListCurrentIndex;
 
-    const name = this.state.selectedName;
+    const participantId = this.state.participantId;
     const validity = this.state.selectedValidity;
     const reasonForValidity = this.state.reasonForValidity;
     const difficulty = this.state.selectedDifficulty;
     const libraryName = this.state.libraryName;
+    const ideName = this.state.ideName;
     const selectedTypes = this.state.selectedTypes;
     const descriptionForType = this.state.descriptionForType;
     const dataFetchingTime = this.state.dataFetchingTime;
 
-    const collectionCurrentName = collectionNames[this.state.collectionCurrentIndex]
-
     try {
-      await this.postAnswer(collectionCurrentName, currentQuizIndex, name, validity, reasonForValidity, difficulty, libraryName, selectedTypes, descriptionForType, dataFetchingTime);
+      await this.postAnswer(participantId, currentQuizIndex, exerciseIndexListCurrentIndex, validity, reasonForValidity, difficulty, selectedTypes, libraryName, ideName, descriptionForType, dataFetchingTime);
       await this.loadNextExercise();
 
     } catch(err) {
@@ -166,6 +163,8 @@ class Home extends Component {
   }
 
   async loadNextExercise() {
+    const participantId = this.state.participantId;
+
     this.setState({
       isLoading: true,
       // Reset all answers
@@ -173,55 +172,22 @@ class Home extends Component {
       reasonForValidity: "", // Q1 Reason
       selectedDifficulty: "", // Q2
       libraryName: "", // Q3
+      ideName: "", // Q3
       selectedTypes: [], // Q3
       descriptionForType: "", // Q3 Description
     });
 
     let exerciseIndexListCurrentIndex = this.state.exerciseIndexListCurrentIndex;
     let exerciseIndexListNextIndex = exerciseIndexListCurrentIndex + 1;
-    let collectionName = collectionNames[this.state.collectionCurrentIndex];
 
     // 回答数がmaxに達したとき
     if (!(exerciseIndexListNextIndex < NUMBER_OF_EXERCISES_TO_ANSWER)) {
-
-      const collectionCurrentIndex = this.state.collectionCurrentIndex;
-      const collectionNextIndex = collectionCurrentIndex + 1;
-      console.log('collectionNextIndex: %d', collectionNextIndex)
-
-      // 全てのcollectionが終わった時
-      if (!(collectionNextIndex < collectionNames.length)) {
-        this.setState({
-          isLoading: false,
-          hasFinished: true
-        });
-        console.log('No exercise remaining.')
-        return;
-      }
-
-      // 次のcollectionがあるとき
       this.setState({
-        collectionCurrentIndex: collectionNextIndex,
-        exerciseIndexListCurrentIndex: 0
+        isLoading: false,
+        hasFinished: true
       });
-      console.log('Moving to next collection.')
-
-      exerciseIndexListNextIndex = 0;
-
-      // 回答する問題番号リストの更新
-      collectionName = collectionNames[this.state.collectionCurrentIndex];
-      await this.fetchNumberOfExercise(collectionName);
-      const numberOfExercise = this.state.numberOfExercise;
-      let exerciseIndexList = [];
-      for (let i = 0; i < NUMBER_OF_EXERCISES_TO_ANSWER; i++) {
-        // TODO: 重複を除去する
-        const quizIndex = Math.floor(Math.random() * (numberOfExercise));
-        exerciseIndexList.push(quizIndex);
-      }
-
-      this.setState({
-        exerciseIndexList: exerciseIndexList
-      })
-
+      console.log('No exercise remaining.')
+      return;
     }
     // 回答数がmaxに達してないとき
     else {
@@ -233,14 +199,14 @@ class Home extends Component {
 
     try {
       const nextQuizIndex = this.state.exerciseIndexList[exerciseIndexListNextIndex];
-      await this.fetchExercise(collectionName, nextQuizIndex);
+      await this.fetchExercise(participantId, nextQuizIndex);
 
       this.setState({
         isLoading: false
       });
 
-      console.log("Next state: %d/%d", exerciseIndexListNextIndex+1,  NUMBER_OF_EXERCISES_TO_ANSWER);
-      console.log("Next quiz index: %d", nextQuizIndex);
+      console.log("Current state: %d/%d", exerciseIndexListNextIndex+1,  NUMBER_OF_EXERCISES_TO_ANSWER);
+      console.log("Current quiz index: %d", nextQuizIndex);
 
     } catch(err) {
       console.error(err);
@@ -252,20 +218,21 @@ class Home extends Component {
   }
 
   // TODO: 以下のメソッドからstateを除去する．
-  async fetchNumberOfExercise(collectionName) {
-    const url = `${BASE_URL}/exercise-number?collection=${collectionName}`;
+  async fetchNumberOfExercise(participantId) {
+    const url = `${BASE_URL}/exercise-number?pid=${participantId}`;
     const self = this;
 
     console.log('url: %s', url)
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(proxyurl+url)
+    await fetch(url)
       .then(response => {
         return response.json();
       })
       .then(responseBody => {
         self.setState({
-          numberOfExercise: responseBody.number
+          numberOfExercise: responseBody.totalNumber,
+          exerciseIndexListCurrentIndex: responseBody.currentIndex
         });
       })
       .catch(err => {
@@ -273,14 +240,14 @@ class Home extends Component {
       });
   }
 
-  async fetchExercise(collectionName, quizIndex) {
-    const url = `${BASE_URL}/exercise?collection=${collectionName}&index=${quizIndex}`;
+  async fetchExercise(participantId, quizIndex) {
+    const url = `${BASE_URL}/exercise?pid=${participantId}&index=${quizIndex}`;
     const self = this;
 
     console.log('url: %s', url)
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(proxyurl+url)
+    await fetch(url)
       .then(response => {
         return response.json();
       })
@@ -297,7 +264,7 @@ class Home extends Component {
       });
   }
 
-  async postAnswer(collectionName, quizIndex, name, validity, reasonForValidity, difficulty, libraryName, selectedTypes, descriptionForType, dataFetchingTime) {
+  async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, reasonForValidity, difficulty, selectedTypes, libraryName, ideName, descriptionForType, dataFetchingTime) {
 
     const dataPostingTime = (new Date()).toString()
 
@@ -310,13 +277,14 @@ class Home extends Component {
       'Content-Type': 'application/json'
     };
     const body = JSON.stringify({
-      "collectionName": collectionName,
+      "participantId": participantId,
       "quizIndex": quizIndex,
-      "name": name,
+      "exerciseIndexListCurrentIndex": exerciseIndexListCurrentIndex,
       "validity": validity,
       "reasonForValidity": reasonForValidity,
       "difficulty": difficulty,
       "libraryName": libraryName,
+      "ideName": ideName,
       "selectedTypes": selectedTypes.join('@'),
       "descriptionForType": descriptionForType,
       "dataFetchingTime": dataFetchingTime,
@@ -325,7 +293,7 @@ class Home extends Component {
 
     console.log(body)
 
-    return fetch(proxyurl+url, {method, headers, body})
+    return fetch(url, {method, headers, body})
   }
 
   /**
@@ -387,9 +355,14 @@ class Home extends Component {
       };
     });
 
+    // Todo: 現在の言語表示
     return (
       <div className="container">
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
+        <div className="row">
+          <h4 className="font-weight-light mb-4">Question number: {this.state.exerciseIndexListCurrentIndex+1} / {NUMBER_OF_EXERCISES_TO_ANSWER}</h4>
+        </div>
+
         <div className="row">
           <h2 className="font-weight-bold mb-4">Quiz: {exercise.title}</h2>
         </div>
@@ -429,27 +402,6 @@ class Home extends Component {
         <div className="cp_form">
           <form>
             <h2 className="font-weight-bold mb-4">Questionnaire</h2>
-            {/* Q0. 名前 */}
-            <h4 className="font-weight-light mb-4">
-              Q0. 回答者番号
-            </h4>
-            <div className="cp_group cp_ipselect">
-              <select
-                className="cp_sl"
-                required
-                value={this.state.selectedName}
-                onChange={e =>
-                  this.setState({ selectedName: e.target.value })
-                }
-              >
-              {this.state.names.map(tmp => (
-                <option key={tmp.value} value={tmp.value}>
-                  {tmp.display}
-                </option>
-              ))}
-              </select>
-              <i className="bar"></i>
-            </div>
 
             {/* Q1. 妥当性 */}
             <h4 className="font-weight-light mb-4">
@@ -475,7 +427,7 @@ class Home extends Component {
             </div>
             <div className="cp_group">
               <textarea required="required" rows="5" onChange={ e => { this.setState({ reasonForValidity: e.target.value })}}></textarea>
-              <label className="cp_label" htmlFor="textarea">そう思わないと答えた場合、理由をお書きください。そう思うと答えた場合でも、演習問題として不適切な点があればお書きください。 </label>
+              <label className="cp_label" htmlFor="textarea">わからない/そう思わないと答えた場合、その理由を記述してください </label>
               <i className="bar"></i>
             </div>
 
@@ -485,7 +437,7 @@ class Home extends Component {
 
             {/* Q2. 難易度 */}
             <h4 className="font-weight-light mb-4">
-              Q2. この演習問題の、あなたにとっての難易度を教えてください (1が最も簡単 -- 5が最も難しい)
+              Q2. この演習問題の、あなたにとっての難易度を教えてください（1が最も簡単 -- 5が最も難しい）
             </h4>
             <div className="cp_group cp_ipselect">
               <select
@@ -507,7 +459,7 @@ class Home extends Component {
 
             {/* Q3. 問題の種類 */}
             <h4 className="font-weight-light mb-4">
-              Q4. この問題から学べる内容を選択してください
+              Q4. この問題から学べる内容をすべて選択してください
             </h4>
             {
               this.state.types.map(tmp => (
@@ -533,6 +485,12 @@ class Home extends Component {
             <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ libraryName: e.target.value })} />
               <label className="cp_label" htmlFor="input">ライブラリ、フレームワーク、APIの名前：</label>
+              <i className="bar"></i>
+            </div>
+
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => this.setState({ ideName: e.target.value })} />
+              <label className="cp_label" htmlFor="input">IDEの名前：</label>
               <i className="bar"></i>
             </div>
 
