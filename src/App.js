@@ -2,7 +2,7 @@ import React, { Component } from "react";
 import { BrowserRouter as Router, Route } from "react-router-dom";
 import { CookiesProvider } from 'react-cookie';
 import { instanceOf } from "prop-types";
-import { withCookies, Cookies } from "react-cookie";
+import { Cookies } from "react-cookie";
 import './App.css';
 import './Login.css';
 

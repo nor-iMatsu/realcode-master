@@ -1,7 +1,7 @@
 pre {
 	padding: 1rem;
-	background-color: #EBECE4; 
-} 
+	background-color: #EBECE4;
+}
 
 .cp_form {
 	position: relative;
@@ -272,7 +272,7 @@ pre {
 	color: #da3c41;
 }
 .cp_form .checkbox {
-	margin-top: 3rem;
+	margin-top: 1rem;
 	margin-bottom: 1rem;
 }
 .cp_form .checkbox .ch_bar {
