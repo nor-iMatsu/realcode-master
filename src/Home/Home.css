@@ -454,3 +454,7 @@ pre {
 .cp_form .btn:focus {
 	outline: none;
 }
+
+.cp_form .highlight {
+	background-color: #EAFAF1;
+}

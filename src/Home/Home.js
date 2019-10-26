@@ -5,8 +5,8 @@ import './Home.css';
 
 require("colors");
 
-const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
-// const BASE_URL = 'http://localhost:8080'; // Local server
+// const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
+const BASE_URL = 'http://localhost:8080'; // Local server
 
 class Home extends Component {
   static propTypes = {
@@ -27,28 +27,46 @@ class Home extends Component {
       exerciseIndexList: [],
       currentExercise: null,
       dataFetchingTime: "",
-      participantId: "", // Q0
-      selectedValidity: "",  // Q1
-      reasonForValidity: "", // Q1 Reason
-      selectedDifficulty: "", // Q2
-      selectedTypes: [],
-      descriptionForSyntax: "",
-      descriptionForRefactoring: "",
-      libraryName: "",
-      descriptionForOtherType: "",
+      participantId: "",
+      selectedUnderstanding: "",  // Q1
+      selectedValidity: "",  // Q2
+      selectedReasonNoValid: [], // Q2
+      descriptionForNoValid: "", // Q2 reason
+      selectedDifficulty: "", // Q3
+      selectedTypes: [], // Q4
+      descriptionForException: "", //Q4
+      descriptionForOtherSyntax: "", //Q4
+      descriptionForLogging: "", //Q4
+      descriptionForLibrary: "", //Q4
+      descriptionForOtherType: "", //Q4
+      understanding: [
+        { value: "", display: "(選択してください)" },
+        { value: "1", display: "全く理解できなかった" },
+        { value: "2", display: "理解できなかった" },
+        { value: "3", display: "どちらでもない" },
+        { value: "4", display: "理解できた" },
+        { value: "5", display: "とても理解できた" },
+      ],
       validity: [
         { value: "", display: "(選択してください)" },
-        { value: "そう思う", display: "そう思う" },
-        { value: "そう思わない", display: "そう思わない" },
-        { value: "わからない", display: "わからない" }
+        { value: "1", display: "全くそう思わない" },
+        { value: "2", display: "そう思わない" },
+        { value: "3", display: "どちらでもない" },
+        { value: "4", display: "そう思う" },
+        { value: "5", display: "とてもそう思う" }
+      ],
+      typesReasonNoValid: [
+        { value: "fraction", display: "コード変更が断片的すぎる" },
+        { value: "distinctName", display: "リポジトリ特有のライブラリ/変数を使用している" },
+        { value: "refactoring", display: "リファクタリングに関する知識である" }
       ],
       difficulties: [
         { value: "", display: "(選択してください)" },
-        { value: "1", display: "1" },
-        { value: "2", display: "2" },
-        { value: "3", display: "3" },
-        { value: "4", display: "4" },
-        { value: "5", display: "5" }
+        { value: "1", display: "とても簡単" },
+        { value: "2", display: "簡単" },
+        { value: "3", display: "どちらでもない" },
+        { value: "4", display: "難しい" },
+        { value: "5", display: "とても難しい" }
       ],
       typesWeb: [
         { value: "frontend", display: "フロントエンドの知識" },
@@ -58,17 +76,20 @@ class Home extends Component {
         { value: "application", display: "アプリケーション開発の知識" },
         { value: "system", display: "システム開発の知識（例：OSやデバイスドライバーなど）" }
       ],
-      typesSyntax: [
-        { value: "algorithm", display: "アルゴリズムに関する知識" },
-        { value: "syntaxAll", display: "ほぼすべてのプログラミング言語に共通する文法の知識（例：エラー処理、while文など）" },
-        { value: "syntaxPeculiar", display: "このプログラミング言語特有の記述方法に関する知識（例：メソッドチェーン、リスト内包表現など）" }
+      typesException: [
+        { value: "syntaxException", display: "例外処理に関する知識" }
       ],
-      typeRefactoring: [
-        { value: "refactoring", display: "リファクタリングに関する知識（例：クラス名の変更）" }
+      typesOtherSyntax: [
+        { value: "syntaxOther", display: "例外処理以外の文法に関する知識" }
       ],
       typesOthers: [
-        { value: "dataScience", display: "データサイエンスに関する知識" },
-        { value: "library", display: "外部のライブラリ、フレームワーク、APIの使用方法" }
+        { value: "realBug", display: "自分が経験したことのあるバグに関する知識" },
+        { value: "algorithm", display: "アルゴリズムに関する知識" },
+        { value: "data", display: "データの取得・操作、データベースに関する知識" },
+        { value: "logging", display: "ログ出力に関する知識" }
+      ],
+      typesLibrary: [
+        { value: "library", display: "外部のライブラリ、フレームワーク、APIの使用方法に関する知識" }
       ]
     };
   }
@@ -151,19 +172,22 @@ class Home extends Component {
     const quizIndex = exerciseIndexList[exerciseIndexListCurrentIndex];
 
     const participantId = this.state.participantId;
+    const understanding = this.state.selectedUnderstanding;
     const validity = this.state.selectedValidity;
-    const reasonForValidity = this.state.reasonForValidity;
+    const selectedReasonNoValid = this.state.selectedReasonNoValid;
+    const descriptionForNoValid = this.state.descriptionForNoValid;
     const difficulty = this.state.selectedDifficulty;
     const selectedTypes = this.state.selectedTypes;
-    const descriptionForSyntax = this.state.descriptionForSyntax;
-    const descriptionForRefactoring = this.state.descriptionForRefactoring;
-    const libraryName = this.state.libraryName;
+    const descriptionForException = this.state.descriptionForException;
+    const descriptionForOtherSyntax = this.state.descriptionForOtherSyntax;
+    const descriptionForLogging = this.state.descriptionForLogging;
+    const descriptionForLibrary = this.state.descriptionForLibrary;
     const descriptionForOtherType = this.state.descriptionForOtherType;
     const dataFetchingTime = this.state.dataFetchingTime;
 
     try {
-      await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, reasonForValidity, difficulty, selectedTypes, descriptionForSyntax, descriptionForRefactoring,
-        libraryName, descriptionForOtherType, dataFetchingTime);
+      await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, understanding, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
+        selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, dataFetchingTime);
       await this.loadNextExercise();
 
     } catch(err) {
@@ -177,13 +201,16 @@ class Home extends Component {
     this.setState({
       isLoading: true,
       // Reset all answers
-      selectedValidity: "",  // Q1
-      reasonForValidity: "", // Q1 Reason
-      selectedDifficulty: "", // Q2
+      selectedUnderstanding: "", // Q1
+      selectedValidity: "",  // Q2
+      selectedReasonNoValid: [], // Q2
+      descriptionForNoValid: "", // Q2 Reason
+      selectedDifficulty: "", // Q3
       selectedTypes: [],
-      descriptionForSyntax: "",
-      descriptionForRefactoring: "",
-      libraryName: "",
+      descriptionForException: "",
+      descriptionForOtherSyntax: "",
+      descriptionForLogging: "",
+      descriptionForLibrary: "",
       descriptionForOtherType: "",
     });
 
@@ -235,7 +262,7 @@ class Home extends Component {
     // console.log('url: %s', url)
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(proxyurl+url)
+    await fetch(url)
       .then(response => {
         return response.json();
       })
@@ -257,7 +284,7 @@ class Home extends Component {
     // console.log('url: %s', url)
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(proxyurl+url)
+    await fetch(url)
       .then(response => {
         return response.json();
       })
@@ -274,8 +301,8 @@ class Home extends Component {
       });
   }
 
-  async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, reasonForValidity, difficulty, selectedTypes, descriptionForSyntax, descriptionForRefactoring,
-    libraryName, descriptionForOtherType, dataFetchingTime) {
+  async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, understanding, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
+    selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, dataFetchingTime) {
 
     const dataPostingTime = (new Date()).toString()
 
@@ -291,13 +318,16 @@ class Home extends Component {
       "participantId": participantId,
       "quizIndex": quizIndex,
       "exerciseIndexListCurrentIndex": exerciseIndexListCurrentIndex,
+      "understanding": understanding,
       "validity": validity,
-      "reasonForValidity": reasonForValidity,
+      "selectedReasonNoValid": selectedReasonNoValid.join('@'),
+      "descriptionForNoValid": descriptionForNoValid,
       "difficulty": difficulty,
       "selectedTypes": selectedTypes.join('@'),
-      "descriptionForSyntax": descriptionForSyntax,
-      "descriptionForRefactoring": descriptionForRefactoring,
-      "libraryName": libraryName,
+      "descriptionForException": descriptionForException,
+      "descriptionForOtherSyntax": descriptionForOtherSyntax,
+      "descriptionForLogging": descriptionForLogging,
+      "descriptionForLibrary": descriptionForLibrary,
       "descriptionForOtherType": descriptionForOtherType,
       "dataFetchingTime": dataFetchingTime,
       "dataPostingTime": dataPostingTime
@@ -305,7 +335,7 @@ class Home extends Component {
 
     // console.log(body)
 
-    return fetch(proxyurl+url, {method, headers, body})
+    return fetch(url, {method, headers, body})
   }
 
   /**
@@ -356,13 +386,18 @@ class Home extends Component {
 
     diff.forEach((part) => {
       const color = part.added ? "green" : part.removed ? "red" : "grey";
+      const regex = /\n/g;
       if (part.added) {
+        // 改行の後に+を挿入
+        const strValue = part.value.replace(regex,"\n+")
         codeDiffComponents.push(
-          <div style={{ color: color }} key={part.value}>+ {part.value}</div>
+          <div style={{ color: color }} key={part.value}>+{strValue}</div>
         );
       } else if (part.removed) {
+        // 改行の後に+を挿入
+        const strValue = part.value.replace(regex,"\n-")
         codeDiffComponents.push(
-          <div style={{ color: color }} key={part.value}>- {part.value}</div>
+          <div style={{ color: color }} key={part.value}>-{strValue}</div>
         );
       };
     });
@@ -416,9 +451,31 @@ class Home extends Component {
             <h2 className="font-weight-bold mb-4">Questionnaire</h2>
 
             {/* Q1. 妥当性 */}
-            <h4 className="font-weight-light mb-4">
+            <h4 className="font-weight-light mb-4 highlight">
               Q1.
-              この問題は、プログラミングの演習問題として良い問題であると思いますか？
+              この問題の問題文と解答コードを理解できましたか？
+            </h4>
+            <div className="cp_group cp_ipselect">
+              <select
+                className="cp_sl"
+                required
+                value={this.state.selectedUnderstanding}
+                onChange={e =>
+                  this.setState({ selectedUnderstanding: e.target.value })
+                }
+              >
+              {this.state.understanding.map(tmp => (
+                <option key={tmp.value} value={tmp.value}>
+                  {tmp.display}
+                </option>
+              ))}
+              </select>
+              <i className="bar"></i>
+            </div>
+
+            <h4 className="font-weight-light mb-4 highlight">
+              Q2.
+              この問題はプログラミング学習に有用だと思いますか？
             </h4>
             <div className="cp_group cp_ipselect">
               <select
@@ -437,19 +494,41 @@ class Home extends Component {
               </select>
               <i className="bar"></i>
             </div>
+            <h5 className="font-weight-light mb-4">
+              「全くそう思わない」「そう思わない」「どちらでもない」と答えた場合、その理由をすべて選択し、他にあれば自由に記述してください。
+            </h5>
+            {
+              this.state.typesReasonNoValid.map(tmp => (
+                <div className="checkbox" key={tmp.value}>
+                <label>
+                  <input type="checkbox" onChange={ e => {
+                    if(e.target.checked) {
+                      let newSelectedTypes = this.state.selectedReasonNoValid.slice(0);
+                      newSelectedTypes.push(tmp.value);
+                      this.setState({ selectedReasonNoValid: newSelectedTypes });
+                    } else {
+                      const newSelectedTypes = this.state.selectedReasonNoValid.filter(element => element !== tmp.value);
+                      this.setState({ selectedReasonNoValid: newSelectedTypes });
+                    }
+                  } }/>
+                  <i className="ch_bar"></i>{tmp.display}
+                </label>
+              </div>
+              ))
+            }
             <div className="cp_group">
-              <textarea required="required" rows="5" onChange={ e => { this.setState({ reasonForValidity: e.target.value })}}></textarea>
-              <label className="cp_label" htmlFor="textarea">その理由を記述してください </label>
+              <textarea required="required" rows="2" onChange={ e => { this.setState({ descriptionForNoValid: e.target.value })}}></textarea>
+              <label className="cp_label" htmlFor="textarea">自由記述：</label>
               <i className="bar"></i>
             </div>
 
             <h5 className="font-weight-bold mb-4">
-              以降の質問は、Q1.で「そう思う」と回答した場合に答えてください
+              以降の質問は、Q2.で「そう思う」「とてもそう思う」と回答した場合に答えてください
             </h5>
 
-            {/* Q2. 難易度 */}
-            <h4 className="font-weight-light mb-4">
-              Q2. この演習問題の、あなたにとっての難易度を教えてください（1が最も簡単 -- 5が最も難しい）
+            {/* Q3. 難易度 */}
+            <h4 className="font-weight-light mb-4 highlight">
+              Q3. この問題のあなたにとっての難易度を教えてください
             </h4>
             <div className="cp_group cp_ipselect">
               <select
@@ -469,9 +548,9 @@ class Home extends Component {
               <i className="bar"></i>
             </div>
 
-            {/* Q3. 問題の種類 */}
-            <h4 className="font-weight-light mb-4">
-              Q3. この問題から学べる内容をすべて選択してください
+            {/* Q4. 問題の種類 */}
+            <h4 className="font-weight-light mb-4 highlight">
+              Q4. この問題から学べる内容をすべて選択し、他にあれば自由に記述してください
             </h4>
             <br></br>
             <h5 className="font-weight-light mb-4">
@@ -521,10 +600,10 @@ class Home extends Component {
             }
             <br></br>
             <h5 className="font-weight-light mb-4">
-              アルゴリズムや文法/記述方法に関する知識
+              文法に関する知識
             </h5>
             {
-              this.state.typesSyntax.map(tmp => (
+              this.state.typesException.map(tmp => (
                 <div className="checkbox" key={tmp.value}>
                 <label>
                   <input type="checkbox" onChange={ e => {
@@ -543,38 +622,38 @@ class Home extends Component {
               ))
             }
             <div className="cp_group">
-              <input type="text" required="required" onChange={ e => this.setState({ descriptionForSyntax: e.target.value })} />
-              <label className="cp_label" htmlFor="input">具体的に記述してください：</label>
+              <input type="text" required="required" onChange={ e => this.setState({ descriptionForException: e.target.value })} />
+              <label className="cp_label" htmlFor="input">例外処理に関する知識を学べる場合、その内容を具体的に記述してください：</label>
+              <i className="bar"></i>
+            </div>
+            {
+              this.state.typesOtherSyntax.map(tmp => (
+                <div className="checkbox" key={tmp.value}>
+                <label>
+                  <input type="checkbox" onChange={ e => {
+                    if(e.target.checked) {
+                      let newSelectedTypes = this.state.selectedTypes.slice(0);
+                      newSelectedTypes.push(tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    } else {
+                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    }
+                  } }/>
+                  <i className="ch_bar"></i>{tmp.display}
+                </label>
+              </div>
+              ))
+            }
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => this.setState({ descriptionForOtherSyntax: e.target.value })} />
+              <label className="cp_label" htmlFor="input">例外処理以外の文法に関する知識を学べる場合、その内容を具体的に記述してください：</label>
               <i className="bar"></i>
             </div>
             <br></br>
             <h5 className="font-weight-light mb-4">
               その他のプログラミングに関する知識
             </h5>
-            {
-              this.state.typeRefactoring.map(tmp => (
-                <div className="checkbox" key={tmp.value}>
-                <label>
-                  <input type="checkbox" onChange={ e => {
-                    if(e.target.checked) {
-                      let newSelectedTypes = this.state.selectedTypes.slice(0);
-                      newSelectedTypes.push(tmp.value);
-                      this.setState({ selectedTypes: newSelectedTypes });
-                    } else {
-                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
-                      this.setState({ selectedTypes: newSelectedTypes });
-                    }
-                  } }/>
-                  <i className="ch_bar"></i>{tmp.display}
-                </label>
-              </div>
-              ))
-            }
-            <div className="cp_group">
-              <input type="text" required="required" onChange={ e => this.setState({ descriptionForRefactoring: e.target.value })} />
-              <label className="cp_label" htmlFor="input">具体的に記述してください：</label>
-              <i className="bar"></i>
-            </div>
             {
               this.state.typesOthers.map(tmp => (
                 <div className="checkbox" key={tmp.value}>
@@ -595,7 +674,31 @@ class Home extends Component {
               ))
             }
             <div className="cp_group">
-              <input type="text" required="required" onChange={ e => this.setState({ libraryName: e.target.value })} />
+              <input type="text" required="required" onChange={ e => this.setState({ descriptionForLogging: e.target.value })} />
+              <label className="cp_label" htmlFor="input">ログ出力に関する知識を学べる場合、その内容を具体的に記述してください：</label>
+              <i className="bar"></i>
+            </div>
+            {
+              this.state.typesLibrary.map(tmp => (
+                <div className="checkbox" key={tmp.value}>
+                <label>
+                  <input type="checkbox" onChange={ e => {
+                    if(e.target.checked) {
+                      let newSelectedTypes = this.state.selectedTypes.slice(0);
+                      newSelectedTypes.push(tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    } else {
+                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    }
+                  } }/>
+                  <i className="ch_bar"></i>{tmp.display}
+                </label>
+              </div>
+              ))
+            }
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => this.setState({ descriptionForLibrary: e.target.value })} />
               <label className="cp_label" htmlFor="input">ライブラリ、フレームワーク、APIの名前：</label>
               <i className="bar"></i>
             </div>
@@ -605,7 +708,7 @@ class Home extends Component {
               上記以外に学べる内容がある場合は、自由に記述してください
             </h5>
             <div className="cp_group">
-              <textarea required="required" rows="5" onChange={ e => this.setState({ descriptionForOtherType: e.target.value })}></textarea>
+              <textarea required="required" rows="2" onChange={ e => this.setState({ descriptionForOtherType: e.target.value })}></textarea>
               <label className="cp_label" htmlFor="textarea">記述してください：</label>
               <i className="bar"></i>
             </div>
