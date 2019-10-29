@@ -38,7 +38,10 @@ class Home extends Component {
       descriptionForOtherSyntax: "", //Q3
       descriptionForLogging: "", //Q3
       descriptionForLibrary: "", //Q3
+      descriptionForData: "", //Q3
+      descriptionForAlgorithms: "", //Q3
       descriptionForOtherType: "", //Q3
+      comments: "", //Q4
       validity: [
         { value: "", display: "(選択してください)" },
         { value: "1", display: "全くそう思わない" },
@@ -179,13 +182,16 @@ class Home extends Component {
     const descriptionForOtherSyntax = this.state.descriptionForOtherSyntax;
     const descriptionForLogging = this.state.descriptionForLogging;
     const descriptionForLibrary = this.state.descriptionForLibrary;
+    const descriptionForData = this.state.descriptionForData;
+    const descriptionForAlgorithms = this.state.descriptionForAlgorithms;
     const descriptionForOtherType = this.state.descriptionForOtherType;
+    const comments = this.state.comments;
     const lineNumbers = this.state.lineNumbers;
     const dataFetchingTime = this.state.dataFetchingTime;
 
     try {
       await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
-        selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, lineNumbers, dataFetchingTime);
+        selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForData, descriptionForAlgorithms, descriptionForOtherType, comments, lineNumbers, dataFetchingTime);
       await this.loadNextExercise();
 
     } catch(err) {
@@ -209,7 +215,10 @@ class Home extends Component {
       descriptionForOtherSyntax: "",
       descriptionForLogging: "",
       descriptionForLibrary: "",
+      descriptionForData: "",
+      descriptionForAlgorithms: "",
       descriptionForOtherType: "",
+      comments: "",
     });
 
     let exerciseIndexListCurrentIndex = this.state.exerciseIndexListCurrentIndex;
@@ -300,7 +309,7 @@ class Home extends Component {
   }
 
   async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
-    selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, lineNumbers, dataFetchingTime) {
+    selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForData, descriptionForAlgorithms, descriptionForOtherType, comments, lineNumbers, dataFetchingTime) {
 
     const dataPostingTime = (new Date()).toString()
 
@@ -325,7 +334,10 @@ class Home extends Component {
       "descriptionForOtherSyntax": descriptionForOtherSyntax,
       "descriptionForLogging": descriptionForLogging,
       "descriptionForLibrary": descriptionForLibrary,
+      "descriptionForData": descriptionForData,
+      "descriptionForAlgorithms": descriptionForAlgorithms,
       "descriptionForOtherType": descriptionForOtherType,
+      "comments": comments,
       "lineNumbers": lineNumbers,
       "dataFetchingTime": dataFetchingTime,
       "dataPostingTime": dataPostingTime
@@ -469,7 +481,17 @@ class Home extends Component {
         </div>
 
         <div className="row">
-          <h2 className="font-weight-bold mb-4">Quiz: {exercise.title}</h2>
+          <h2 className="font-weight-bold mb-4">Changed file: {exercise.file_name}</h2>
+        </div>
+
+        <pre className="prettyprint linenums">
+          <code>{codeDiffComponents}</code>
+        </pre>
+
+        <hr></hr>
+
+        <div className="row">
+          <h2 className="font-weight-bold mb-4">Issue title: {exercise.title}</h2>
         </div>
         <div
           className="row"
@@ -479,20 +501,8 @@ class Home extends Component {
         <hr></hr>
 
         <div className="row">
-          <h2 className="font-weight-bold mb-4">Answer code</h2>
-        </div>
-
-        <div>
-          <h4 className="font-weight-light mb-4">{exercise.file_name}</h4>
-        </div>
-
-        <pre className="prettyprint linenums">
-          <code>{codeDiffComponents}</code>
-        </pre>
-
-        <div className="row">
           <h2 className="font-weight-bold mb-4">
-            Answer description: {exercise.answerTitle}
+            Pull request title: {exercise.answerTitle}
           </h2>
         </div>
         {
@@ -530,7 +540,7 @@ class Home extends Component {
               <i className="bar"></i>
             </div>
             <h5 className="font-weight-light mb-4">
-              「全くそう思わない」「そう思わない」「どちらでもない」と答えた場合、その理由をすべて選択し、他にあれば自由に記述してください。
+              「全くそう思わない」「そう思わない」と答えた場合、その理由をすべて選択し、他にあれば自由に記述してください。
             </h5>
             {
               this.state.typesReasonNoValid.map(tmp => (
@@ -558,7 +568,7 @@ class Home extends Component {
             </div>
 
             <h5 className="font-weight-bold mb-4">
-              以降の質問は、Q1.で「そう思う」「とてもそう思う」と回答した場合に答えてください
+              以降の質問（Q2 - Q4）は、Q1.で「どちらでもない」「そう思う」「とてもそう思う」と回答した場合に答えてください
             </h5>
 
             {/* Q3. 問題の種類 */}
@@ -571,29 +581,6 @@ class Home extends Component {
             </h5>
             {
               this.state.typesWeb.map(tmp => (
-                <div className="checkbox" key={tmp.value}>
-                <label>
-                  <input type="checkbox" onChange={ e => {
-                    if(e.target.checked) {
-                      let newSelectedTypes = this.state.selectedTypes.slice(0);
-                      newSelectedTypes.push(tmp.value);
-                      this.setState({ selectedTypes: newSelectedTypes });
-                    } else {
-                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
-                      this.setState({ selectedTypes: newSelectedTypes });
-                    }
-                  } }/>
-                  <i className="ch_bar"></i>{tmp.display}
-                </label>
-              </div>
-              ))
-            }
-            <br></br>
-            <h5 className="font-weight-light mb-4">
-              ソフトウェア開発者に求められる知識
-            </h5>
-            {
-              this.state.typesSoftware.map(tmp => (
                 <div className="checkbox" key={tmp.value}>
                 <label>
                   <input type="checkbox" onChange={ e => {
@@ -641,7 +628,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -676,7 +663,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -688,6 +675,42 @@ class Home extends Component {
             <h5 className="font-weight-light mb-4">
               その他のプログラミングに関する知識
             </h5>
+            {/* ライブラリに関する知識 */}
+            {
+              this.state.typesLibrary.map(tmp => (
+                <div className="checkbox" key={tmp.value}>
+                <label>
+                  <input type="checkbox" onChange={ e => {
+                    if(e.target.checked) {
+                      let newSelectedTypes = this.state.selectedTypes.slice(0);
+                      newSelectedTypes.push(tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    } else {
+                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    }
+                  } }/>
+                  <i className="ch_bar"></i>{tmp.display}
+                </label>
+              </div>
+              ))
+            }
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = this.state.typesLibrary[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <i className="bar"></i>
+            </div>
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => this.setState({ descriptionForLibrary: e.target.value })} />
+              <label className="cp_label" htmlFor="input">ライブラリ、フレームワーク、APIの名称を含めて、学べる内容を具体的に記述してください：</label>
+              <i className="bar"></i>
+            </div>
             {/* 自分が経験したことのあるバグに関する知識 */}
             {
               this.state.typesBug.map(tmp => (
@@ -716,71 +739,10 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
-            {/* アルゴリズムに関する知識 */}
-            {
-              this.state.typesAlgorithms.map(tmp => (
-                <div className="checkbox" key={tmp.value}>
-                <label>
-                  <input type="checkbox" onChange={ e => {
-                    if(e.target.checked) {
-                      let newSelectedTypes = this.state.selectedTypes.slice(0);
-                      newSelectedTypes.push(tmp.value);
-                      this.setState({ selectedTypes: newSelectedTypes });
-                    } else {
-                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
-                      this.setState({ selectedTypes: newSelectedTypes });
-                    }
-                  } }/>
-                  <i className="ch_bar"></i>{tmp.display}
-                </label>
-              </div>
-              ))
-            }
-            <div className="cp_group">
-              <input type="text" required="required" onChange={ e => {
-                let newLineNumbers = {};
-                Object.assign(newLineNumbers, this.state.lineNumbers);
-                let hasyKey = this.state.typesAlgorithms[0]["value"];
-                newLineNumbers[String(hasyKey)] = e.target.value;
-                this.setState({ lineNumbers: newLineNumbers });
-              } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
-              <i className="bar"></i>
-            </div>
-            {/* データの取得・操作、データベースに関する知識 */}
-            {
-              this.state.typesData.map(tmp => (
-                <div className="checkbox" key={tmp.value}>
-                <label>
-                  <input type="checkbox" onChange={ e => {
-                    if(e.target.checked) {
-                      let newSelectedTypes = this.state.selectedTypes.slice(0);
-                      newSelectedTypes.push(tmp.value);
-                      this.setState({ selectedTypes: newSelectedTypes });
-                    } else {
-                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
-                      this.setState({ selectedTypes: newSelectedTypes });
-                    }
-                  } }/>
-                  <i className="ch_bar"></i>{tmp.display}
-                </label>
-              </div>
-              ))
-            }
-            <div className="cp_group">
-              <input type="text" required="required" onChange={ e => {
-                let newLineNumbers = {};
-                Object.assign(newLineNumbers, this.state.lineNumbers);
-                let hasyKey = this.state.typesData[0]["value"];
-                newLineNumbers[String(hasyKey)] = e.target.value;
-                this.setState({ lineNumbers: newLineNumbers });
-              } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
-              <i className="bar"></i>
-            </div>
+
             {/* ログ出力に関する知識 */}
             {
               this.state.typesLogging.map(tmp => (
@@ -809,7 +771,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -817,8 +779,10 @@ class Home extends Component {
               <label className="cp_label" htmlFor="input">使用されている関数/属性/クラス等の名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
             </div>
+
+            {/* データの取得・操作、データベースに関する知識 */}
             {
-              this.state.typesLibrary.map(tmp => (
+              this.state.typesData.map(tmp => (
                 <div className="checkbox" key={tmp.value}>
                 <label>
                   <input type="checkbox" onChange={ e => {
@@ -840,16 +804,53 @@ class Home extends Component {
               <input type="text" required="required" onChange={ e => {
                 let newLineNumbers = {};
                 Object.assign(newLineNumbers, this.state.lineNumbers);
-                let hasyKey = this.state.typesLibrary[0]["value"];
+                let hasyKey = this.state.typesData[0]["value"];
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
-              <input type="text" required="required" onChange={ e => this.setState({ descriptionForLibrary: e.target.value })} />
-              <label className="cp_label" htmlFor="input">ライブラリ、フレームワーク、APIの名称を含めて、学べる内容を具体的に記述してください：</label>
+              <input type="text" required="required" onChange={ e => this.setState({ descriptionForData: e.target.value })} />
+              <label className="cp_label" htmlFor="input">学べる内容を具体的に記述してください：</label>
+              <i className="bar"></i>
+            </div>
+
+            {/* アルゴリズムに関する知識 */}
+            {
+              this.state.typesAlgorithms.map(tmp => (
+                <div className="checkbox" key={tmp.value}>
+                <label>
+                  <input type="checkbox" onChange={ e => {
+                    if(e.target.checked) {
+                      let newSelectedTypes = this.state.selectedTypes.slice(0);
+                      newSelectedTypes.push(tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    } else {
+                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    }
+                  } }/>
+                  <i className="ch_bar"></i>{tmp.display}
+                </label>
+              </div>
+              ))
+            }
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = this.state.typesAlgorithms[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <i className="bar"></i>
+            </div>
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => this.setState({ descriptionForAlgorithms: e.target.value })} />
+              <label className="cp_label" htmlFor="input">学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
             </div>
 
@@ -865,7 +866,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -876,7 +877,7 @@ class Home extends Component {
 
           {/* Q2. 難易度 */}
           <h4 className="font-weight-light mb-4 highlight">
-            Q3. この問題のあなたにとっての難易度を教えてください
+            Q3. この問題のあなたにとっての難易度を教えてください。
           </h4>
           <div className="cp_group cp_ipselect">
             <select
@@ -893,6 +894,16 @@ class Home extends Component {
               </option>
             ))}
             </select>
+            <i className="bar"></i>
+          </div>
+
+          {/* Q4. コメント*/}
+          <h4 className="font-weight-light mb-4 highlight">
+            Q4. その他、この問題に対してのコメントが何かあれば記述してください。
+          </h4>
+          <div className="cp_group">
+            <textarea required="required" rows="2" onChange={ e => { this.setState({ comments: e.target.value })}}></textarea>
+            <label className="cp_label" htmlFor="textarea">自由に記述してください：</label>
             <i className="bar"></i>
           </div>
           </form>
