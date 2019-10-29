@@ -31,6 +31,7 @@ class Home extends Component {
       selectedValidity: "",  // Q1
       selectedReasonNoValid: [], // Q1
       descriptionForNoValid: "", // Q1 reason
+      lineNumbers: {},
       selectedDifficulty: "", // Q2
       selectedTypes: [], // Q3
       descriptionForException: "", //Q3
@@ -73,10 +74,16 @@ class Home extends Component {
       typesOtherSyntax: [
         { value: "syntaxOther", display: "例外処理以外の文法に関する知識" }
       ],
-      typesOthers: [
-        { value: "realBug", display: "自分が経験したことのあるバグに関する知識" },
-        { value: "algorithm", display: "アルゴリズムに関する知識" },
-        { value: "data", display: "データの取得・操作、データベースに関する知識" },
+      typesBug: [
+        { value: "realBug", display: "自分が経験したことのあるバグに関する知識" }
+      ],
+      typesAlgorithms: [
+        { value: "algorithm", display: "アルゴリズムに関する知識" }
+      ],
+      typesData: [
+        { value: "data", display: "データの取得・操作、データベースに関する知識" }
+      ],
+      typesLogging: [
         { value: "logging", display: "ログ出力に関する知識" }
       ],
       typesLibrary: [
@@ -173,11 +180,12 @@ class Home extends Component {
     const descriptionForLogging = this.state.descriptionForLogging;
     const descriptionForLibrary = this.state.descriptionForLibrary;
     const descriptionForOtherType = this.state.descriptionForOtherType;
+    const lineNumbers = this.state.lineNumbers;
     const dataFetchingTime = this.state.dataFetchingTime;
 
     try {
       await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
-        selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, dataFetchingTime);
+        selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, lineNumbers, dataFetchingTime);
       await this.loadNextExercise();
 
     } catch(err) {
@@ -196,6 +204,7 @@ class Home extends Component {
       descriptionForNoValid: "", // Q1 Reason
       selectedDifficulty: "", // Q2
       selectedTypes: [],
+      lineNumbers: {},
       descriptionForException: "",
       descriptionForOtherSyntax: "",
       descriptionForLogging: "",
@@ -291,7 +300,7 @@ class Home extends Component {
   }
 
   async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
-    selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, dataFetchingTime) {
+    selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, lineNumbers, dataFetchingTime) {
 
     const dataPostingTime = (new Date()).toString()
 
@@ -317,6 +326,7 @@ class Home extends Component {
       "descriptionForLogging": descriptionForLogging,
       "descriptionForLibrary": descriptionForLibrary,
       "descriptionForOtherType": descriptionForOtherType,
+      "lineNumbers": lineNumbers,
       "dataFetchingTime": dataFetchingTime,
       "dataPostingTime": dataPostingTime
     });
@@ -397,9 +407,9 @@ class Home extends Component {
       }
 
       if (part.added) {
-        // 改行の後に行数と+/-を挿入
+        // 改行の後に行番号と+/-を挿入
         const strValue = part.value.replace(regex, function() {
-          // 行数が2桁じゃないならスペース入れる
+          // 行番号が2桁じゃないならスペース入れる
           if (lineCounterAddition < 9) {
             return '\n ' + insertCharBefore + (++lineCounterAddition) + insertCharAfter;
           }
@@ -423,9 +433,9 @@ class Home extends Component {
         lineCounterAddition += regCounter;
       }
       else if (part.removed) {
-        // 改行の後に行数と+/-を挿入
+        // 改行の後に行番号と+/-を挿入
         const strValue = part.value.replace(regex, function() {
-          // 行数が2桁じゃないならスペース入れる
+          // 行番号が2桁じゃないならスペース入れる
           if (lineCounterDeletion < 9) {
             return '\n ' + insertCharBefore + (++lineCounterDeletion) + insertCharAfter;
           }
@@ -500,7 +510,7 @@ class Home extends Component {
 
             <h4 className="font-weight-light mb-4 highlight">
               Q1.
-              この問題は、本システムの想定ユーザにとって有用だと思いますか？
+              この問題は、想定ユーザ（※実験説明参照）にとって有用だと思いますか？
             </h4>
             <div className="cp_group cp_ipselect">
               <select
@@ -553,7 +563,7 @@ class Home extends Component {
 
             {/* Q3. 問題の種類 */}
             <h4 className="font-weight-light mb-4 highlight">
-              Q2. この問題から学べる内容をすべて選択してください。また、学べる内容について具体的に記述してください。
+              Q2. 想定ユーザがこの問題から学ぶべき内容をすべて選択してください。また、該当する行番号や学べる内容を記述してください。
             </h4>
             <br></br>
             <h5 className="font-weight-light mb-4">
@@ -625,6 +635,16 @@ class Home extends Component {
               ))
             }
             <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = Object.create(this.state.lineNumbers);
+                let hasyKey = this.state.typesException[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <i className="bar"></i>
+            </div>
+            <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForException: e.target.value })} />
               <label className="cp_label" htmlFor="input">使用されている例外型/エラー型がある場合はその名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
@@ -649,6 +669,17 @@ class Home extends Component {
               ))
             }
             <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = this.state.typesOtherSyntax[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <i className="bar"></i>
+            </div>
+            <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForOtherSyntax: e.target.value })} />
               <label className="cp_label" htmlFor="input">使用されている文法規則の名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
@@ -657,8 +688,9 @@ class Home extends Component {
             <h5 className="font-weight-light mb-4">
               その他のプログラミングに関する知識
             </h5>
+            {/* 自分が経験したことのあるバグに関する知識 */}
             {
-              this.state.typesOthers.map(tmp => (
+              this.state.typesBug.map(tmp => (
                 <div className="checkbox" key={tmp.value}>
                 <label>
                   <input type="checkbox" onChange={ e => {
@@ -676,6 +708,110 @@ class Home extends Component {
               </div>
               ))
             }
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = this.state.typesBug[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <i className="bar"></i>
+            </div>
+            {/* アルゴリズムに関する知識 */}
+            {
+              this.state.typesAlgorithms.map(tmp => (
+                <div className="checkbox" key={tmp.value}>
+                <label>
+                  <input type="checkbox" onChange={ e => {
+                    if(e.target.checked) {
+                      let newSelectedTypes = this.state.selectedTypes.slice(0);
+                      newSelectedTypes.push(tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    } else {
+                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    }
+                  } }/>
+                  <i className="ch_bar"></i>{tmp.display}
+                </label>
+              </div>
+              ))
+            }
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = this.state.typesAlgorithms[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <i className="bar"></i>
+            </div>
+            {/* データの取得・操作、データベースに関する知識 */}
+            {
+              this.state.typesData.map(tmp => (
+                <div className="checkbox" key={tmp.value}>
+                <label>
+                  <input type="checkbox" onChange={ e => {
+                    if(e.target.checked) {
+                      let newSelectedTypes = this.state.selectedTypes.slice(0);
+                      newSelectedTypes.push(tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    } else {
+                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    }
+                  } }/>
+                  <i className="ch_bar"></i>{tmp.display}
+                </label>
+              </div>
+              ))
+            }
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = this.state.typesData[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <i className="bar"></i>
+            </div>
+            {/* ログ出力に関する知識 */}
+            {
+              this.state.typesLogging.map(tmp => (
+                <div className="checkbox" key={tmp.value}>
+                <label>
+                  <input type="checkbox" onChange={ e => {
+                    if(e.target.checked) {
+                      let newSelectedTypes = this.state.selectedTypes.slice(0);
+                      newSelectedTypes.push(tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    } else {
+                      const newSelectedTypes = this.state.selectedTypes.filter(element => element !== tmp.value);
+                      this.setState({ selectedTypes: newSelectedTypes });
+                    }
+                  } }/>
+                  <i className="ch_bar"></i>{tmp.display}
+                </label>
+              </div>
+              ))
+            }
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = this.state.typesLogging[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <i className="bar"></i>
+            </div>
             <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForLogging: e.target.value })} />
               <label className="cp_label" htmlFor="input">使用されている関数/属性/クラス等の名称を含めて、学べる内容を具体的に記述してください：</label>
@@ -701,6 +837,17 @@ class Home extends Component {
               ))
             }
             <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = this.state.typesLibrary[0]["value"];
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <i className="bar"></i>
+            </div>
+            <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForLibrary: e.target.value })} />
               <label className="cp_label" htmlFor="input">ライブラリ、フレームワーク、APIの名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
@@ -710,6 +857,17 @@ class Home extends Component {
             <h5 className="font-weight-light mb-4">
               上記以外に学べる内容がある場合
             </h5>
+            <div className="cp_group">
+              <input type="text" required="required" onChange={ e => {
+                let newLineNumbers = {};
+                Object.assign(newLineNumbers, this.state.lineNumbers);
+                let hasyKey = "others";
+                newLineNumbers[String(hasyKey)] = e.target.value;
+                this.setState({ lineNumbers: newLineNumbers });
+              } }/>
+              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：a9,a12-14）</label>
+              <i className="bar"></i>
+            </div>
             <div className="cp_group">
               <textarea required="required" rows="2" onChange={ e => this.setState({ descriptionForOtherType: e.target.value })}></textarea>
               <label className="cp_label" htmlFor="textarea">自由に記述してください：</label>
