@@ -28,25 +28,16 @@ class Home extends Component {
       currentExercise: null,
       dataFetchingTime: "",
       participantId: "",
-      selectedUnderstanding: "",  // Q1
-      selectedValidity: "",  // Q2
-      selectedReasonNoValid: [], // Q2
-      descriptionForNoValid: "", // Q2 reason
-      selectedDifficulty: "", // Q3
-      selectedTypes: [], // Q4
-      descriptionForException: "", //Q4
-      descriptionForOtherSyntax: "", //Q4
-      descriptionForLogging: "", //Q4
-      descriptionForLibrary: "", //Q4
-      descriptionForOtherType: "", //Q4
-      understanding: [
-        { value: "", display: "(選択してください)" },
-        { value: "1", display: "全く理解できなかった" },
-        { value: "2", display: "理解できなかった" },
-        { value: "3", display: "どちらでもない" },
-        { value: "4", display: "理解できた" },
-        { value: "5", display: "とても理解できた" },
-      ],
+      selectedValidity: "",  // Q1
+      selectedReasonNoValid: [], // Q1
+      descriptionForNoValid: "", // Q1 reason
+      selectedDifficulty: "", // Q2
+      selectedTypes: [], // Q3
+      descriptionForException: "", //Q3
+      descriptionForOtherSyntax: "", //Q3
+      descriptionForLogging: "", //Q3
+      descriptionForLibrary: "", //Q3
+      descriptionForOtherType: "", //Q3
       validity: [
         { value: "", display: "(選択してください)" },
         { value: "1", display: "全くそう思わない" },
@@ -56,8 +47,8 @@ class Home extends Component {
         { value: "5", display: "とてもそう思う" }
       ],
       typesReasonNoValid: [
-        { value: "fraction", display: "コード変更が断片的すぎる" },
-        { value: "distinctName", display: "リポジトリ特有のライブラリ/変数を使用している" },
+        { value: "fraction", display: "コード差分が断片的すぎて理解できない" },
+        { value: "distinctName", display: "リポジトリ特有のライブラリ/変数などを使用しているため、コード差分が理解できない" },
         { value: "refactoring", display: "リファクタリングに関する知識である" }
       ],
       difficulties: [
@@ -172,7 +163,6 @@ class Home extends Component {
     const quizIndex = exerciseIndexList[exerciseIndexListCurrentIndex];
 
     const participantId = this.state.participantId;
-    const understanding = this.state.selectedUnderstanding;
     const validity = this.state.selectedValidity;
     const selectedReasonNoValid = this.state.selectedReasonNoValid;
     const descriptionForNoValid = this.state.descriptionForNoValid;
@@ -186,7 +176,7 @@ class Home extends Component {
     const dataFetchingTime = this.state.dataFetchingTime;
 
     try {
-      await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, understanding, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
+      await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
         selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, dataFetchingTime);
       await this.loadNextExercise();
 
@@ -201,11 +191,10 @@ class Home extends Component {
     this.setState({
       isLoading: true,
       // Reset all answers
-      selectedUnderstanding: "", // Q1
-      selectedValidity: "",  // Q2
-      selectedReasonNoValid: [], // Q2
-      descriptionForNoValid: "", // Q2 Reason
-      selectedDifficulty: "", // Q3
+      selectedValidity: "",  // Q1
+      selectedReasonNoValid: [], // Q1
+      descriptionForNoValid: "", // Q1 Reason
+      selectedDifficulty: "", // Q2
       selectedTypes: [],
       descriptionForException: "",
       descriptionForOtherSyntax: "",
@@ -301,7 +290,7 @@ class Home extends Component {
       });
   }
 
-  async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, understanding, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
+  async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
     selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForOtherType, dataFetchingTime) {
 
     const dataPostingTime = (new Date()).toString()
@@ -318,7 +307,6 @@ class Home extends Component {
       "participantId": participantId,
       "quizIndex": quizIndex,
       "exerciseIndexListCurrentIndex": exerciseIndexListCurrentIndex,
-      "understanding": understanding,
       "validity": validity,
       "selectedReasonNoValid": selectedReasonNoValid.join('@'),
       "descriptionForNoValid": descriptionForNoValid,
@@ -384,22 +372,82 @@ class Home extends Component {
     const codeDiffComponents = [];
     const diff = require("diff").diffLines(exercise_raw.code_change.before_body, exercise_raw.code_change.after_body);
 
+    let lineCounterAddition = 1;
+    let lineCounterDeletion = 1;
     diff.forEach((part) => {
       const color = part.added ? "green" : part.removed ? "red" : "grey";
       const regex = /\n/g;
+
+      // 正規表現とマッチする文字列の個数をカウント
+      let regCounter = 0;
+      while (regex.exec(part.value) !== null) {
+        regCounter++;
+      }
+
+      // +か-を挿入する
+      let insertCharBefore = "";
+      let insertCharAfter = "";
       if (part.added) {
-        // 改行の後に+を挿入
-        const strValue = part.value.replace(regex,"\n+")
-        codeDiffComponents.push(
-          <div style={{ color: color }} key={part.value}>+{strValue}</div>
-        );
-      } else if (part.removed) {
-        // 改行の後に+を挿入
-        const strValue = part.value.replace(regex,"\n-")
-        codeDiffComponents.push(
-          <div style={{ color: color }} key={part.value}>-{strValue}</div>
-        );
-      };
+        insertCharBefore = "a"
+        insertCharAfter = "+";
+      }
+      else if (part.removed) {
+        insertCharBefore = "d"
+        insertCharAfter = "-";
+      }
+
+      if (part.added) {
+        // 改行の後に行数と+/-を挿入
+        const strValue = part.value.replace(regex, function() {
+          // 行数が2桁じゃないならスペース入れる
+          if (lineCounterAddition < 9) {
+            return '\n ' + insertCharBefore + (++lineCounterAddition) + insertCharAfter;
+          }
+          return '\n' + insertCharBefore + (++lineCounterAddition) + insertCharAfter;
+        });
+
+        // lineCounterを巻き戻す
+        lineCounterAddition -= regCounter;
+
+        if (lineCounterAddition < 10) {
+          codeDiffComponents.push(
+            <div style={{ color: color }} key={part.value}> {insertCharBefore}{lineCounterAddition++}{insertCharAfter}{strValue}</div>
+          );
+        }
+        else {
+          codeDiffComponents.push(
+            <div style={{ color: color }} key={part.value}>{insertCharBefore}{lineCounterAddition++}{insertCharAfter}{strValue}</div>
+          );
+        }
+        // lineCounterを先に進める
+        lineCounterAddition += regCounter;
+      }
+      else if (part.removed) {
+        // 改行の後に行数と+/-を挿入
+        const strValue = part.value.replace(regex, function() {
+          // 行数が2桁じゃないならスペース入れる
+          if (lineCounterDeletion < 9) {
+            return '\n ' + insertCharBefore + (++lineCounterDeletion) + insertCharAfter;
+          }
+          return '\n' + insertCharBefore + (++lineCounterDeletion) + insertCharAfter;
+        });
+
+        // lineCounterを巻き戻す
+        lineCounterDeletion -= regCounter;
+
+        if (lineCounterDeletion < 10) {
+          codeDiffComponents.push(
+            <div style={{ color: color }} key={part.value}> {insertCharBefore}{lineCounterDeletion++}{insertCharAfter}{strValue}</div>
+          );
+        }
+        else {
+          codeDiffComponents.push(
+            <div style={{ color: color }} key={part.value}>{insertCharBefore}{lineCounterDeletion++}{insertCharAfter}{strValue}</div>
+          );
+        }
+        // lineCounterを先に進める
+        lineCounterDeletion += regCounter;
+      }
     });
 
     // Todo: 現在の言語表示
@@ -450,32 +498,9 @@ class Home extends Component {
           <form>
             <h2 className="font-weight-bold mb-4">Questionnaire</h2>
 
-            {/* Q1. 妥当性 */}
             <h4 className="font-weight-light mb-4 highlight">
               Q1.
-              この問題の問題文と解答コードを理解できましたか？
-            </h4>
-            <div className="cp_group cp_ipselect">
-              <select
-                className="cp_sl"
-                required
-                value={this.state.selectedUnderstanding}
-                onChange={e =>
-                  this.setState({ selectedUnderstanding: e.target.value })
-                }
-              >
-              {this.state.understanding.map(tmp => (
-                <option key={tmp.value} value={tmp.value}>
-                  {tmp.display}
-                </option>
-              ))}
-              </select>
-              <i className="bar"></i>
-            </div>
-
-            <h4 className="font-weight-light mb-4 highlight">
-              Q2.
-              この問題はプログラミング学習に有用だと思いますか？
+              この問題は、本システムの想定ユーザにとって有用だと思いますか？
             </h4>
             <div className="cp_group cp_ipselect">
               <select
@@ -518,39 +543,17 @@ class Home extends Component {
             }
             <div className="cp_group">
               <textarea required="required" rows="2" onChange={ e => { this.setState({ descriptionForNoValid: e.target.value })}}></textarea>
-              <label className="cp_label" htmlFor="textarea">自由記述：</label>
+              <label className="cp_label" htmlFor="textarea">他にあれば、自由に記述してください：</label>
               <i className="bar"></i>
             </div>
 
             <h5 className="font-weight-bold mb-4">
-              以降の質問は、Q2.で「そう思う」「とてもそう思う」と回答した場合に答えてください
+              以降の質問は、Q1.で「そう思う」「とてもそう思う」と回答した場合に答えてください
             </h5>
 
-            {/* Q3. 難易度 */}
+            {/* Q3. 問題の種類 */}
             <h4 className="font-weight-light mb-4 highlight">
-              Q3. この問題のあなたにとっての難易度を教えてください
-            </h4>
-            <div className="cp_group cp_ipselect">
-              <select
-                className="cp_sl"
-                required
-                value={this.state.selectedDifficulty}
-                onChange={e =>
-                  this.setState({ selectedDifficulty: e.target.value })
-                }
-              >
-              {this.state.difficulties.map(tmp => (
-                <option key={tmp.value} value={tmp.value}>
-                  {tmp.display}
-                </option>
-              ))}
-              </select>
-              <i className="bar"></i>
-            </div>
-
-            {/* Q4. 問題の種類 */}
-            <h4 className="font-weight-light mb-4 highlight">
-              Q4. この問題から学べる内容をすべて選択し、他にあれば自由に記述してください
+              Q2. この問題から学べる内容をすべて選択してください。また、学べる内容について具体的に記述してください。
             </h4>
             <br></br>
             <h5 className="font-weight-light mb-4">
@@ -623,7 +626,7 @@ class Home extends Component {
             }
             <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForException: e.target.value })} />
-              <label className="cp_label" htmlFor="input">例外処理に関する知識を学べる場合、その内容を具体的に記述してください：</label>
+              <label className="cp_label" htmlFor="input">使用されている例外型/エラー型がある場合はその名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
             </div>
             {
@@ -647,7 +650,7 @@ class Home extends Component {
             }
             <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForOtherSyntax: e.target.value })} />
-              <label className="cp_label" htmlFor="input">例外処理以外の文法に関する知識を学べる場合、その内容を具体的に記述してください：</label>
+              <label className="cp_label" htmlFor="input">使用されている文法規則の名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
             </div>
             <br></br>
@@ -675,7 +678,7 @@ class Home extends Component {
             }
             <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForLogging: e.target.value })} />
-              <label className="cp_label" htmlFor="input">ログ出力に関する知識を学べる場合、その内容を具体的に記述してください：</label>
+              <label className="cp_label" htmlFor="input">使用されている関数/属性/クラス等の名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
             </div>
             {
@@ -699,19 +702,41 @@ class Home extends Component {
             }
             <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForLibrary: e.target.value })} />
-              <label className="cp_label" htmlFor="input">ライブラリ、フレームワーク、APIの名前：</label>
+              <label className="cp_label" htmlFor="input">ライブラリ、フレームワーク、APIの名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
             </div>
 
 
             <h5 className="font-weight-light mb-4">
-              上記以外に学べる内容がある場合は、自由に記述してください
+              上記以外に学べる内容がある場合
             </h5>
             <div className="cp_group">
               <textarea required="required" rows="2" onChange={ e => this.setState({ descriptionForOtherType: e.target.value })}></textarea>
-              <label className="cp_label" htmlFor="textarea">記述してください：</label>
+              <label className="cp_label" htmlFor="textarea">自由に記述してください：</label>
               <i className="bar"></i>
             </div>
+
+          {/* Q2. 難易度 */}
+          <h4 className="font-weight-light mb-4 highlight">
+            Q3. この問題のあなたにとっての難易度を教えてください
+          </h4>
+          <div className="cp_group cp_ipselect">
+            <select
+              className="cp_sl"
+              required
+              value={this.state.selectedDifficulty}
+              onChange={e =>
+                this.setState({ selectedDifficulty: e.target.value })
+              }
+            >
+            {this.state.difficulties.map(tmp => (
+              <option key={tmp.value} value={tmp.value}>
+                {tmp.display}
+              </option>
+            ))}
+            </select>
+            <i className="bar"></i>
+          </div>
           </form>
           <div className="btn_cont">
             <button
