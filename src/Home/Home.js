@@ -72,10 +72,10 @@ class Home extends Component {
         { value: "system", display: "システム開発の知識（例：OSやデバイスドライバーなど）" }
       ],
       typesException: [
-        { value: "syntaxException", display: "例外処理に関する知識" }
+        { value: "syntaxException", display: "エラー処理/例外処理に関する知識" }
       ],
       typesOtherSyntax: [
-        { value: "syntaxOther", display: "例外処理以外の文法に関する知識" }
+        { value: "syntaxOther", display: "エラー処理/例外処理以外の文法に関する知識" }
       ],
       typesBug: [
         { value: "realBug", display: "自分が経験したことのあるバグに関する知識" }
@@ -628,12 +628,12 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <label className="cp_label" htmlFor="input">ファイル変更内で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
               <input type="text" required="required" onChange={ e => this.setState({ descriptionForException: e.target.value })} />
-              <label className="cp_label" htmlFor="input">使用されている例外型/エラー型がある場合はその名称を含めて、学べる内容を具体的に記述してください：</label>
+              <label className="cp_label" htmlFor="input">使用されているエラー型/例外型がある場合はその名称を含めて、学べる内容を具体的に記述してください：</label>
               <i className="bar"></i>
             </div>
             {
@@ -663,7 +663,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <label className="cp_label" htmlFor="input">ファイル変更内で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -703,7 +703,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <label className="cp_label" htmlFor="input">ファイル変更内で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -739,7 +739,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <label className="cp_label" htmlFor="input">ファイル変更内で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
 
@@ -771,7 +771,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <label className="cp_label" htmlFor="input">ファイル変更内で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -808,7 +808,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <label className="cp_label" htmlFor="input">ファイル変更内で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -845,7 +845,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <label className="cp_label" htmlFor="input">ファイル変更内で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
@@ -866,7 +866,7 @@ class Home extends Component {
                 newLineNumbers[String(hasyKey)] = e.target.value;
                 this.setState({ lineNumbers: newLineNumbers });
               } }/>
-              <label className="cp_label" htmlFor="input">コード差分中で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
+              <label className="cp_label" htmlFor="input">ファイル変更内で該当する行番号を入力してください（例：d2-d4, d7, a2-a7）</label>
               <i className="bar"></i>
             </div>
             <div className="cp_group">
