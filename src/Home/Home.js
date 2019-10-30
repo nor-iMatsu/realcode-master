@@ -5,8 +5,8 @@ import './Home.css';
 
 require("colors");
 
-// const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
-const BASE_URL = 'http://localhost:8080'; // Local server
+const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
+// const BASE_URL = 'http://localhost:8080'; // Local server
 
 class Home extends Component {
   static propTypes = {
@@ -269,7 +269,7 @@ class Home extends Component {
     // console.log('url: %s', url)
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(url)
+    await fetch(proxyurl+url)
       .then(response => {
         return response.json();
       })
@@ -291,7 +291,7 @@ class Home extends Component {
     // console.log('url: %s', url)
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(url)
+    await fetch(proxyurl+url)
       .then(response => {
         return response.json();
       })
@@ -345,7 +345,7 @@ class Home extends Component {
 
     // console.log(body)
 
-    return fetch(url, {method, headers, body})
+    return fetch(proxyurl+url, {method, headers, body})
   }
 
   /**
