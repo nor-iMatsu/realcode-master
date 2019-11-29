@@ -198,8 +198,11 @@ class Home extends Component {
     }
 
     try {
-      await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty, issueUrl,
+      const result = this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty, issueUrl,
         selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForData, descriptionForAlgorithms, descriptionForOtherType, comments, lineNumbers, dataFetchingTime);
+
+      console.log(result)
+
       await this.loadNextExercise();
 
     } catch(err) {
@@ -316,7 +319,7 @@ class Home extends Component {
       });
   }
 
-  async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty, issueUrl,
+  postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty, issueUrl,
     selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForData, descriptionForAlgorithms, descriptionForOtherType, comments, lineNumbers, dataFetchingTime) {
 
     const dataPostingTime = (new Date()).toString()
@@ -352,7 +355,7 @@ class Home extends Component {
       "dataPostingTime": dataPostingTime
     });
 
-    console.log(body)
+    // console.log(body)
 
     return fetch(proxyurl+url, {method, headers, body})
   }
