@@ -117,7 +117,7 @@ class Home extends Component {
     const search = this.props.location.search
     const params = new URLSearchParams(search);
     this.state.participantId = params.get('id');
-    console.log(this.state.participantId);
+    // console.log(this.state.participantId);
 
     try {
       // 問題数をロード
@@ -190,7 +190,7 @@ class Home extends Component {
     const dataFetchingTime = this.state.dataFetchingTime;
 
     const issueUrl = this.state.currentExercise.url;
-    console.log(issueUrl);
+    // console.log(issueUrl);
 
     if (validity == null || validity == '') {
       console.log("Not answered yet.")
@@ -201,7 +201,7 @@ class Home extends Component {
       const result = this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty, issueUrl,
         selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForData, descriptionForAlgorithms, descriptionForOtherType, comments, lineNumbers, dataFetchingTime);
 
-      console.log(result)
+      // console.log(result)
 
       await this.loadNextExercise();
 
