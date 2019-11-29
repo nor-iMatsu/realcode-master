@@ -117,7 +117,7 @@ class Home extends Component {
     const search = this.props.location.search
     const params = new URLSearchParams(search);
     this.state.participantId = params.get('id');
-    // console.log(this.state.participantId);
+    console.log(this.state.participantId);
 
     try {
       // 問題数をロード
@@ -189,8 +189,16 @@ class Home extends Component {
     const lineNumbers = this.state.lineNumbers;
     const dataFetchingTime = this.state.dataFetchingTime;
 
+    const issueUrl = this.state.currentExercise.url;
+    console.log(issueUrl);
+
+    if (validity == null || validity == '') {
+      console.log("Not answered yet.")
+      return;
+    }
+
     try {
-      await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
+      await this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty, issueUrl,
         selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForData, descriptionForAlgorithms, descriptionForOtherType, comments, lineNumbers, dataFetchingTime);
       await this.loadNextExercise();
 
@@ -308,7 +316,7 @@ class Home extends Component {
       });
   }
 
-  async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty,
+  async postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty, issueUrl,
     selectedTypes, descriptionForException, descriptionForOtherSyntax, descriptionForLogging, descriptionForLibrary, descriptionForData, descriptionForAlgorithms, descriptionForOtherType, comments, lineNumbers, dataFetchingTime) {
 
     const dataPostingTime = (new Date()).toString()
@@ -329,6 +337,7 @@ class Home extends Component {
       "selectedReasonNoValid": selectedReasonNoValid.join('@'),
       "descriptionForNoValid": descriptionForNoValid,
       "difficulty": difficulty,
+      "issueUrl": issueUrl,
       "selectedTypes": selectedTypes.join('@'),
       "descriptionForException": descriptionForException,
       "descriptionForOtherSyntax": descriptionForOtherSyntax,
@@ -343,7 +352,7 @@ class Home extends Component {
       "dataPostingTime": dataPostingTime
     });
 
-    // console.log(body)
+    console.log(body)
 
     return fetch(proxyurl+url, {method, headers, body})
   }
@@ -389,6 +398,8 @@ class Home extends Component {
       file_name: exercise_raw.code_change.file_name,
       lang: exercise_raw.lang
     };
+
+    // console.log(exercise_raw)
 
     // Calculate code diff
     const codeDiffComponents = [];
