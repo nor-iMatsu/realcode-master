@@ -5,8 +5,8 @@ import './Home.css';
 
 require("colors");
 
-const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
-// const BASE_URL = 'http://localhost:8080'; // Local server
+// const BASE_URL = 'https://api.realcode.link'; // Remote server on EC2
+const BASE_URL = 'http://localhost:8080'; // Local server
 
 class Home extends Component {
   static propTypes = {
@@ -192,10 +192,10 @@ class Home extends Component {
     const issueUrl = this.state.currentExercise.url;
     // console.log(issueUrl);
 
-    if (validity == null || validity == '') {
-      console.log("Not answered yet.")
-      return;
-    }
+    // if (validity == null || validity == '') {
+    //   console.log("Not answered yet.")
+    //   return;
+    // }
 
     try {
       const result = this.postAnswer(participantId, quizIndex, exerciseIndexListCurrentIndex, validity, selectedReasonNoValid, descriptionForNoValid, difficulty, issueUrl,
@@ -280,7 +280,7 @@ class Home extends Component {
     // console.log('url: %s', url)
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(proxyurl+url)
+    await fetch(url)
       .then(response => {
         return response.json();
       })
@@ -302,7 +302,7 @@ class Home extends Component {
     // console.log('url: %s', url)
     const proxyurl = "https://cors-anywhere.herokuapp.com/";
 
-    await fetch(proxyurl+url)
+    await fetch(url)
       .then(response => {
         return response.json();
       })
@@ -357,7 +357,7 @@ class Home extends Component {
 
     // console.log(body)
 
-    return fetch(proxyurl+url, {method, headers, body})
+    return fetch(url, {method, headers, body})
   }
 
   /**
@@ -491,7 +491,7 @@ class Home extends Component {
       <div className="container">
         <script src="https://cdn.jsdelivr.net/gh/google/code-prettify@master/loader/run_prettify.js"></script>
         <div className="row">
-          <h4 className="font-weight-light mb-4">Question number: {this.state.exerciseIndexListCurrentIndex+1} / {this.state.numberOfExercise}</h4>
+          <h4 className="font-weight-light mb-4">Question number: {this.state.exerciseIndexListCurrentIndex} / {this.state.numberOfExercise}</h4>
         </div>
 
         <div className="row">
@@ -921,6 +921,7 @@ class Home extends Component {
             <i className="bar"></i>
           </div>
           </form>
+
           <div className="btn_cont">
             <button
               className="btn"
@@ -928,6 +929,7 @@ class Home extends Component {
               onClick={ () => this.goToNext() }
             ><span>Submit</span></button>
           </div>
+
         </div>
       </div>
     );
